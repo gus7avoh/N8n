@@ -1,0 +1,604 @@
+{
+  "name": "My workflow 7",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1pJ_n74UUObao5RtlD1AMdcZWl72Um6-Y",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pJ_n74UUObao5RtlD1AMdcZWl72Um6-Y"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1700,
+        100
+      ],
+      "id": "51543cc6-2f3d-4d2f-b62c-5266d1a1308f",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JDlBDgoL88iT7yyl",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "328fef84-382c-47de-9510-918deb0a0ae6",
+              "name": "file_id",
+              "value": "={{$json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "b2b9a433-bec7-46c1-a788-421c51792693",
+              "name": "file_type",
+              "value": "={{$json.mimeType}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1380,
+        240
+      ],
+      "id": "f85b31c1-0537-4e4e-a853-b39c1ca0fdb0",
+      "name": "GET FILE ID",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1180,
+        240
+      ],
+      "id": "fab5bb5a-ee56-431f-8084-fc59990bbae0",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "options": {
+          "systemMessage": "Voce é uma atendente profissional para tirar dúvidas sobre editais de concursos. Utilize sempre a base de conhecimento para responder as dúvidas dos interessados. Seja sempre humanizada em suas respostas, utilize emojis quando achar necessario.\n\nIMPORTANTE: nunca responda que está validando os dados, como por exemplo de acordo com as informações obtidas do edital, estou consultando o edital, consultei o edital,  As informações foram obtidas diretamente do edital do concurso entre outros.\n\nResponda sempre de forma mais direta e conversacional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -1260,
+        900
+      ],
+      "id": "e46c2779-9712-45d8-bcab-6ee3b7bfcb3c",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1660,
+        900
+      ],
+      "id": "597710ef-3ecc-4615-b7b5-72af563de0e8",
+      "name": "When chat message received",
+      "webhookId": "1539379e-3e3d-4f13-b704-2cd1ce67b770"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1360,
+        1080
+      ],
+      "id": "c1fd80ca-c0d6-41e6-9370-7c4f6f7bff4d",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "B5J4WTGGz3ycXT3c",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        260
+      ],
+      "id": "b554dfa9-59f3-4f89-941b-eae9967718e1",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZzpLePfccLIWlIys",
+          "name": "Supabase account - localhost"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        500
+      ],
+      "id": "a93bc8f7-f6fa-497b-9132-d828e0a5fe5d",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "B5J4WTGGz3ycXT3c",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "= {{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('GET FILE ID').item.json.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        160,
+        480
+      ],
+      "id": "55fdd0e2-0ceb-41af-8fd6-950b95a93ffd",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -1180,
+        1120
+      ],
+      "id": "fca13bef-c711-4129-944f-2cafb22c02a0",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "OOREB5OdW24Y9AWg",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents",
+        "filterType": "string",
+        "filterString": "=metadata->>file_id=like.*{{ $json.file_id }}"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        260
+      ],
+      "id": "85ac7b4d-ea3c-4e9c-a0cb-16df2c6d0e02",
+      "name": "Apaga registros",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZzpLePfccLIWlIys",
+          "name": "Supabase account - localhost"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('GET FILE ID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -620,
+        260
+      ],
+      "id": "c8c9868c-6497-4251-a05f-c074de4b89a9",
+      "name": "Baixa arquivo do drive",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JDlBDgoL88iT7yyl",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {
+          "joinPages": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        260
+      ],
+      "id": "834cfb87-6fb0-4b4a-a35c-2535b425628c",
+      "name": "Extrai o pdf para text."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Enable the pgvector extension to work with embedding vectors\nCREATE EXTENSION IF NOT EXISTS vector;\n\n-- Create a table to store your documents\nCREATE TABLE IF NOT EXISTS documents (\n  id bigserial primary key,\n  content text,       -- corresponds to Document.pageContent\n  metadata jsonb,     -- corresponds to Document.metadata\n  embedding vector(768) -- 768 works for certain embeddings; change if needed\n);\n\n-- Create a function to search for documents\nCREATE OR REPLACE FUNCTION match_documents (\n  query_embedding vector(768),\n  match_count int default null,\n  filter jsonb DEFAULT '{}'\n)\nRETURNS TABLE (\n  id bigint,\n  content text,\n  metadata jsonb,\n  similarity float\n)\nLANGUAGE plpgsql\nAS $$\n#variable_conflict use_column\nBEGIN\n  RETURN QUERY\n    SELECT\n      id,\n      content,\n      metadata,\n      1 - (documents.embedding <=> query_embedding) AS similarity\n    FROM documents\n    WHERE metadata @> filter\n    ORDER BY documents.embedding <=> query_embedding\n    LIMIT match_count;\nEND;\n$$;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1680,
+        -300
+      ],
+      "id": "f4035aae-674d-44ef-8f32-3a71f49ecb48",
+      "name": "Create Table and function",
+      "credentials": {
+        "postgres": {
+          "id": "rtB8wfCrv5o13IJw",
+          "name": "DB Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "documents",
+        "toolDescription": "Use RAG to look up information in the knowledgebase.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        1200
+      ],
+      "id": "25bc5163-8285-4940-8c92-e43209bf3c29",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ZzpLePfccLIWlIys",
+          "name": "Supabase account - localhost"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -820,
+        1420
+      ],
+      "id": "dff1ed90-1b6e-4898-8594-ed2c10cd8911",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "B5J4WTGGz3ycXT3c",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterTokenSplitter",
+      "typeVersion": 1,
+      "position": [
+        180,
+        680
+      ],
+      "id": "7c72ee8d-64db-40e3-a53f-a28f34db52c4",
+      "name": "Token Splitter"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1pJ_n74UUObao5RtlD1AMdcZWl72Um6-Y",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pJ_n74UUObao5RtlD1AMdcZWl72Um6-Y"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1700,
+        440
+      ],
+      "id": "36d72bae-b8a0-4f3e-8026-dc0e8a1f25e9",
+      "name": "Google Drive Trigger1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JDlBDgoL88iT7yyl",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET FILE ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Apaga registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apaga registros": {
+      "main": [
+        [
+          {
+            "node": "Baixa arquivo do drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixa arquivo do drive": {
+      "main": [
+        [
+          {
+            "node": "Extrai o pdf para text.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai o pdf para text.": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "081a76c6-3e0a-4100-aa54-e796f3503a1b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fb99c2a4d7bef96d4162ad0fc9c157c8ec56d9bce83067252ae1fc53beafd7c9"
+  },
+  "id": "e0cMU8o2iIHQfGuC",
+  "tags": []
+}
