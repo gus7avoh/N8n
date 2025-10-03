@@ -1,0 +1,769 @@
+{
+  "name": "Projeto Resoluções",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE",
+          "mode": "list",
+          "cachedResultName": "Arsae",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        400
+      ],
+      "id": "5891aae8-5286-445c-bbf0-00360632460e",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "328fef84-382c-47de-9510-918deb0a0ae6",
+              "name": "file_id",
+              "value": "={{$json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "b2b9a433-bec7-46c1-a788-421c51792693",
+              "name": "file_type",
+              "value": "={{$json.mimeType}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        544
+      ],
+      "id": "064bfedc-19e9-46bb-93ab-c4cabdc5feb0",
+      "name": "GET FILE ID",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        512,
+        544
+      ],
+      "id": "9c284eec-7164-4e59-ae4b-6d55aa5e0aec",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        928
+      ],
+      "id": "f47fd76b-6ff1-4992-aca7-87808d1c89a9",
+      "name": "When chat message received",
+      "webhookId": "1539379e-3e3d-4f13-b704-2cd1ce67b770"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        560
+      ],
+      "id": "c7e31c05-89a4-480b-abd0-97a995783bec",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        800
+      ],
+      "id": "ca2b29b3-dbca-4833-8130-dc157c27a765",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "= {{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('GET FILE ID').item.json.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        784
+      ],
+      "id": "2f98a370-072a-4aec-ac53-8ce9c5fc12f6",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents",
+        "filterType": "string",
+        "filterString": "=metadata->>file_id=like.*{{ $json.file_id }}"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        784,
+        560
+      ],
+      "id": "73af57ef-131e-4f09-9999-1742ff4985f6",
+      "name": "Apaga registros",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('GET FILE ID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1072,
+        560
+      ],
+      "id": "8d1ea5b9-c6e1-4258-b982-dd6ba81af7d7",
+      "name": "Baixa arquivo do drive",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {
+          "joinPages": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        560
+      ],
+      "id": "fbf7fa6b-af9b-4cce-9d3c-18abf09975b7",
+      "name": "Extrai o pdf para text."
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterTokenSplitter",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        992
+      ],
+      "id": "c014234a-0e2e-48e8-b0d3-9d78cf8ea6e5",
+      "name": "Token Splitter"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE",
+          "mode": "list",
+          "cachedResultName": "Arsae",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        752
+      ],
+      "id": "1c6e38c6-e3a9-4ab3-b9c9-5c24adad8cf6",
+      "name": "Google Drive Trigger1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Você é o Gerenciador de Agentes.\nSua função é coordenar a execução dos agentes Contradição e Ambiguidade.\n\nRegras:\n\nSempre que pedirem para fazer a análise:\n\nIdentifique os documentos disponíveis por meio da sua Tool Supabase Vector Store.\n\nNão peça ao usuário o nome do documento.\n\nApenas selecione os documentos necessários para análise.\n\nO fluxo de execução deve ser:\n\nExecutar o agente Contradição sobre o(s) documento(s).\n\nExecutar o agente Ambiguidade sobre o(s) documento(s).\n\nValidar se cada agente conseguiu responder corretamente.\n\nEstruture sua resposta final exatamente neste formato:\n\nValidação Inicial\n\nIndique se a análise de Contradição foi aprovada ou não.\n\nEm seguida, em outro parágrafo curto, descreva se a análise de Ambiguidade foi aprovada ou não.\n\nContradição\n\nNúmero total de contradições: X\n\nPara cada contradição encontrada:\n\nPosição no documento (conforme indicado pelo agente Contradição).\nTrecho do documento.\n\nExplicação: por que isso é uma contradição.\n\nAmbiguidade\n\nNúmero total de ambiguidades: Y\n\nPara cada ambiguidade encontrada:\n\nPosição no documento (conforme indicado pelo agente Ambiguidade).\nTrecho do documento.\n\nExplicação: por que isso é uma ambiguidade."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        928
+      ],
+      "id": "263c86b3-1d50-4639-a0c1-0520dfb88b2b",
+      "name": "Gerenciador de Agentes",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        96,
+        1200
+      ],
+      "id": "bb4a4d7a-4d92-4861-bb52-2adb17097c92",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        1216
+      ],
+      "id": "cfa4c079-85e2-4026-b7cf-98df4f4bcbfb",
+      "name": "Simple Memory3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1680
+      ],
+      "id": "a853ae0a-21d8-4b9d-93f7-de68c68b7047",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "documents",
+        "toolDescription": "Use RAG to look up information in the knowledgebase.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        816,
+        1680
+      ],
+      "id": "9372fe93-acf6-4374-9fdd-752502915500",
+      "name": "Supabase Vector Store4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        816,
+        1856
+      ],
+      "id": "876349ed-3527-4b82-9d86-dc744c0eeb95",
+      "name": "Embeddings Google Gemini4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Usar o campo `metadata.loc` para indicar a posição exata de cada parágrafo.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\"from\": 43, \"to\": 88},\n        {\"from\": 142, \"to\": 176}\n      ],\n      \"trechos\": [\n        \"Texto do primeiro parágrafo identificado em conflito\",\n        \"Texto do segundo parágrafo identificado em conflito\"\n      ],\n      \"explicacao\": \"Descrição clara do motivo da contradição\",\n      \"sugestao_harmonizacao\": \"Forma sugerida de esclarecimento ou correção\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os pares `from` e `to` do campo `metadata.loc` de cada trecho em conflito.\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        1200
+      ],
+      "id": "fe346126-ef84-443a-ae0c-0e62321372a2",
+      "name": "Contradicao"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos e identificação de ambiguidades.\n\n### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Para cada ambiguidade encontrada, você deve:\n   - Usar o campo `metadata.loc` para indicar a posição exata do parágrafo.\n   - Retornar o texto do parágrafo (`content`).\n   - Explicar por que o trecho é ambíguo.\n   - Classificar o tipo de ambiguidade.\n   - Propor uma forma de reescrita.\n\n### O QUE É UMA AMBIGUIDADE?\nAmbiguidade ocorre quando uma frase ou expressão permite duas ou mais interpretações possíveis, gerando incerteza ou confusão.\n\n**Tipos de ambiguidade:**\n- Lexical → palavra com múltiplos significados.\n- Sintática → estrutura da frase pouco clara.\n- Referencial → pronomes ou termos vagos.\n- De escopo → não está claro a que parte do texto algo se aplica.\n- Suposição implícita/informação ausente → exigência de conhecimento externo não declarado.\n\n### SAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"ambiguidade\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_ambiguidades\": 2,\n  \"ambiguidades\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacao\": {\"from\": 43, \"to\": 88},\n      \"trecho\": \"Texto do parágrafo identificado no campo content\",\n      \"tipo\": \"Referencial\",\n      \"explicacao\": \"Descrição clara do motivo da ambiguidade\",\n      \"sugestao_reescrita\": \"Versão reescrita mais clara\"\n    }\n  ]\n}\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacao` deve ser preenchida com os valores `from` e `to` do campo `metadata.loc`.\n- Se nenhuma ambiguidade for encontrada, o JSON deve retornar:\n\n{\n  \"ambiguidade\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_ambiguidades\": 0,\n  \"ambiguidades\": []\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        1200
+      ],
+      "id": "1501c380-6241-4a60-9e64-20cd0ac844e9",
+      "name": "Ambiguidade"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        1696
+      ],
+      "id": "21eb4c38-98ce-499a-bc8c-971aa13cbba0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "documents",
+        "toolDescription": "Use RAG to look up information in the knowledgebase.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        1680
+      ],
+      "id": "e3a759c1-487d-4ff4-93c7-ef0e8d047be7",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        1872
+      ],
+      "id": "f155d97d-ea62-4ab2-a397-1bdabd9716d7",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET FILE ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Apaga registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Gerenciador de Agentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apaga registros": {
+      "main": [
+        [
+          {
+            "node": "Baixa arquivo do drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixa arquivo do drive": {
+      "main": [
+        [
+          {
+            "node": "Extrai o pdf para text.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai o pdf para text.": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gerenciador de Agentes",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Gerenciador de Agentes",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store4",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store4": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contradicao",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gerenciador de Agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gerenciador de Agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ambiguidade",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f53f6a70-b9ee-444d-be53-713475751cfd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c61ff4d61d172e24e02a2b81c6325776f3bed136366fdbeca620ddb4ac8cc86a"
+  },
+  "id": "jiGXs0StENQAKw3i",
+  "tags": []
+}
