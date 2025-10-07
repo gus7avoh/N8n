@@ -1,0 +1,37 @@
+2 - modelo funional
+
+
+
+você tem alguma documento para analisar ?
+
+Validação Inicial
+
+A análise de Contradição foi aprovada, pois identificou uma contradição reportada dentro do próprio documento.
+
+A análise de Ambiguidade foi aprovada, pois identificou diversas ambiguidades no documento.
+
+Contradição
+
+Número total de contradições: 1
+
+Posição no documento: 96-97 e 277-278 Trecho do documento: "diferentemente do que dispõe o art. 29 do projeto, que se refere a (34) trinta e quatro URGRs, seu Anexo V relaciona (26) vinte e seis URGRs;" e "Art. 5º – Ficam instituídas vinte e seis URGRs, integradas pelos municípios relacionados no Anexo I." Explicação: O parecer dentro do documento (página 3, linhas 96-97) aponta uma contradição no 'projeto original', onde o Art. 29 mencionava 34 URGRs, enquanto o Anexo V listava 26 URGRs. Embora o Substitutivo Nº 1 (que é a versão principal do projeto de lei em análise) harmonize essa questão ao instituir explicitamente 26 URGRs no Art. 5º (página 7, linhas 277-278), a menção da contradição pré-existente no parecer a torna uma inconsistência reportada dentro do próprio corpo do documento analisado.
+
+Ambiguidade
+
+Número total de ambiguidades: 8
+
+Posição no documento: 227-232 Trecho do documento: "Art. 4º – A definição, por parte da instância colegiada deliberativa da URSB, da entidade responsável pela regulação e pela fiscalização dos serviços, nos termos do inciso IV do art. 7º e do inciso V do art. 16, deverá considerar os princípios estabelecidos no art. 21 da Lei Federal nº 11.445, de 2007, e as normas de referência da Agência Nacional de Águas e Saneamento Básico –ANA." Explicação: O Art. 4º faz referência ao 'inciso IV do art. 7º', porém, o Art. 7º do texto fornecido não possui incisos, apenas um parágrafo único. Isso gera uma imprecisão na referência legal, impossibilitando a consulta correta.
+
+Posição no documento: 470-474 Trecho do documento: "Art. 20 – As funções de regulação e fiscalização dos serviços de abastecimento de água potável e esgotamento sanitário das Uraeds serão desempenhadas pela Agência Reguladora de Serviços de Abastecimento de Água e de Esgotamento Sanitário do Estado de Minas Gerais – Arsae-MG – até que se promova a definição, por parte das respectivas instâncias colegiadas deliberativas, da entidade responsável pela regulação e pela fiscalização dos serviços." Explicação: A frase 'até que se promova a definição' não especifica quem é responsável por 'promover a definição' da entidade reguladora e quais os critérios ou prazos para que essa definição ocorra. Isso cria incerteza sobre a transição e a responsabilidade regulatória a longo prazo.
+
+Posição no documento: 176-181 Trecho do documento: "Parágrafo único – As unidades regionais de gestão de resíduos – URGRs – e as unidades regionais de abastecimento de água potável, esgotamento sanitário e drenagem e manejo das águas pluviais urbanas – Uraeds –, de que tratam, respectivamente, os Capítulos II e III, são modalidades de URSBs, com estrutura de governança própria e independência entre si." Explicação: A expressão 'independência entre si' pode ser interpretada de diversas maneiras. Não fica claro se essa independência é total (operacional, financeira, decisória) ou se há alguma forma de interligação ou coordenação obrigatória, dada a sua condição de 'modalidades de URSBs' e as competências gerais das URSBs.
+
+Posição no documento: 454-458 Trecho do documento: "§ 4º – O município que optar por não aderir à respectiva URGR deverá atestar sua capacidade técnico-operacional para alcançar as metas e os prazos determinados pela Lei Federal nº 14.026, de 2020." Explicação: O texto exige que o município 'ateste sua capacidade técnico-operacional', mas não define quem fará essa avaliação, quais os critérios objetivos para essa comprovação ou quais as consequências caso a capacidade não seja atestada ou seja considerada insuficiente.
+
+Posição no documento: 2963-2995 Trecho do documento: "§ 8º – Os membros da Diretoria Colegiada deverão ser brasileiros, de reputação ilibada e de notório conhecimento no campo de sua especialidade, devendo ser atendidos um dos requisitos previstos nas alíneas do inciso I e, cumulativamente, o inciso II deste parágrafo: I – ter experiência profissional de, no mínimo: a) 10 anos, no setor público ou privado, no campo de atividade da agência reguladora ou em área a ela conexa, em função de direção superior ou cargo semelhante; [...] II – ter formação acadêmica compatível com o cargo para o qual foi indicado." Explicação: Os termos 'cargo semelhante' (I.a) e 'formação acadêmica compatível' (II) são subjetivos e podem levar a interpretações diversas durante o processo de seleção dos membros da Diretoria, comprometendo a transparência e a objetividade.
+
+Posição no documento: 3058-3064 Trecho do documento: "Art. 31 – Os critérios de reajuste e de revisão das tarifas dos serviços regulados, previstos nos arts. 12 e 13, somente serão aplicados aos convênios e contratos em vigor na data de publicação desta lei no que não contrariar as cláusulas estipuladas, nesses instrumentos, pelos órgãos e pelas entidades sujeitos à regulação e à fiscalização da Arsae-MG." Explicação: A ressalva 'no que não contrariar as cláusulas estipuladas' introduz uma complexidade significativa, pois exige uma análise individual de cada convênio e contrato existente para determinar a aplicabilidade dos novos critérios. Isso pode gerar inconsistências e disputas jurídicas sobre quais cláusulas prevalecem.
+
+Posição no documento: 3131-3135 Trecho do documento: "Art. 40 – Esta lei entra em vigor na data de sua publicação, produzindo seus efeitos a partir do primeiro dia do exercício financeiro subsequente e, relativamente ao art. 16 desta lei, após decorridos 90 dias da publicação." Explicação: A combinação de três momentos distintos para a entrada em vigor (data de publicação, primeiro dia do exercício financeiro subsequente, e 90 dias após a publicação para o Art. 16) pode gerar confusão e dificuldades na aplicação da lei, tornando incerto qual prazo se aplica a cada disposição em um dado momento.
+
+Posição no documento: 3144-3145 Trecho do documento: "ANEXO I (a que se referem o caput do art. 5º e o § 5º do art. 19 da Lei nº , de de de )" Explicação: O cabeçalho do Anexo I está incompleto, faltando o número e a data da Lei a que se refere. Isso impede a correta identificação e contextualização das referências, gerando incerteza sobre a legislação complementar.
