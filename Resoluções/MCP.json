@@ -1,0 +1,1773 @@
+{
+  "name": "MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE",
+          "mode": "list",
+          "cachedResultName": "Arsae",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3232,
+        -3056
+      ],
+      "id": "e3e97838-f2bf-42dc-82d9-13d9fa0d0746",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "328fef84-382c-47de-9510-918deb0a0ae6",
+              "name": "file_id",
+              "value": "={{$json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "b2b9a433-bec7-46c1-a788-421c51792693",
+              "name": "file_type",
+              "value": "={{$json.mimeType}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2912,
+        -2912
+      ],
+      "id": "94fa7c91-0d55-4872-9c4c-5ef8210c5f1b",
+      "name": "GET FILE ID",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2704,
+        -2912
+      ],
+      "id": "79c073b6-8c1f-48db-94fe-ee2c25d64262",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2512,
+        -2256
+      ],
+      "id": "a00c1441-540b-43f5-b5dd-b13ed18d59e0",
+      "name": "When chat message received",
+      "webhookId": "1539379e-3e3d-4f13-b704-2cd1ce67b770"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        -2896
+      ],
+      "id": "c822173d-cb00-4bd9-a43a-b83ef3e60047",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        -2656
+      ],
+      "id": "7173265e-d8ab-4e15-8a31-8a75d511c5df",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "= {{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('GET FILE ID').item.json.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        -2672
+      ],
+      "id": "49308e4d-5032-45f4-bf60-113bfaef8b9d",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents",
+        "filterType": "string",
+        "filterString": "=metadata->>file_id=like.*{{ $json.file_id }}"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2432,
+        -2896
+      ],
+      "id": "a06701ad-9612-4cd4-9b22-7f78c6987e9e",
+      "name": "Apaga registros",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('GET FILE ID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2144,
+        -2896
+      ],
+      "id": "08c6dccf-92f0-4b7e-8120-876a28c47888",
+      "name": "Baixa arquivo do drive",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {
+          "joinPages": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        -2896
+      ],
+      "id": "fbc7e5a3-610f-414a-a088-8fb8428ec2d7",
+      "name": "Extrai o pdf para text."
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterTokenSplitter",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        -2464
+      ],
+      "id": "ba8cee78-d9fe-461b-b681-52a56bf0e077",
+      "name": "Token Splitter"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE",
+          "mode": "list",
+          "cachedResultName": "Arsae",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1hoUtoTSLExymctT2nPPVQOOT9RBOHgjE"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3232,
+        -2704
+      ],
+      "id": "05ef6562-bb4c-4294-a49a-942e4b4b78a8",
+      "name": "Google Drive Trigger1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PcjocaSyYr5ony2u",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2848,
+        -2016
+      ],
+      "id": "0b6f40bb-34b4-4e64-862c-e8543f951402",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2672,
+        -1952
+      ],
+      "id": "575119fb-5b23-4c87-ab0b-dd9b4bd17d30",
+      "name": "Simple Memory3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -1408
+      ],
+      "id": "4ceb5d7b-6630-48f6-b68c-ddd62975c206",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        -1328
+      ],
+      "id": "bf1b88aa-5074-4c0b-b638-8719be5e3d3a",
+      "name": "Embeddings Google Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5bc8c82d-b278-4b1e-ae69-a119200faf09",
+              "name": "text",
+              "value": "={{ $json.text.replace(/\\\\/g, '\\\\\\\\') }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1616,
+        -2896
+      ],
+      "id": "1fc6a4d1-4fde-4bc5-b4b7-adab11f47113",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2224,
+        -1424
+      ],
+      "id": "1a09f8d9-088b-4779-a1f7-08424accf81d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2368,
+        -1424
+      ],
+      "id": "86b79dfa-4875-469f-a429-ae43f8d708e3",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -1424
+      ],
+      "id": "feffb0e2-b35a-40c8-badf-be8423abb1af",
+      "name": "Google Gemini Chat Model9",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -1424
+      ],
+      "id": "22444241-b58f-495c-999b-8ff5fc2c81fb",
+      "name": "Google Gemini Chat Model10",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -1424
+      ],
+      "id": "fd64bb2d-70ea-49ff-a4f4-bc55f6905da2",
+      "name": "Google Gemini Chat Model11",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -1424
+      ],
+      "id": "7c9e0c52-9a65-46d1-8f63-c1e1024fa514",
+      "name": "Google Gemini Chat Model12",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -1424
+      ],
+      "id": "19abff21-45ce-4655-ba90-aac0c239c090",
+      "name": "Google Gemini Chat Model13",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2032,
+        -1408
+      ],
+      "id": "b00a6c9d-4e55-4ee6-aeae-891f3050609e",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        -1408
+      ],
+      "id": "2335af70-b0d2-4318-ae8c-3ee9fa067bc4",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        -1408
+      ],
+      "id": "c65271f1-9ad8-45b0-aff8-4901f6e98895",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        -1408
+      ],
+      "id": "53532f19-dcbb-45eb-b6aa-749c172f05b5",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1760,
+        -1424
+      ],
+      "id": "b303719b-e5bb-4457-8c84-6f4f6848cf4b",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        -1424
+      ],
+      "id": "87795b9d-7c7a-4774-b23f-879f6515c876",
+      "name": "Google Gemini Chat Model7",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "Busca_de_documentos",
+        "toolDescription": "Executa uma busca vetorial por similaridade no banco de dados de documentos (Supabase).\n\nParâmetros:\n- query (string, obrigatório): O texto ou pergunta a ser usado para encontrar documentos relevantes.\n",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": null,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        -1504
+      ],
+      "id": "ac481ce4-80f3-43ff-a769-08d3944942f6",
+      "name": "Busca_de_documentos",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        -1600
+      ],
+      "id": "95dc6bdc-bcb7-4067-89ca-53bdd5469bb5",
+      "name": "Google Gemini Chat Model8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é o agente responsável por buscar os títulos e contexto dos documentos.",
+        "text": "Você é um agente especialista em busca de dados. Sua única função é usar a ferramenta `Busca_de_documentos` e formatar a saída em um JSON estrito.\n\n**Diretiva Principal:**\n1.  Você será ativado com uma consulta do usuário (ex: \"verificar documentos\").\n2.  Imediatamente, acione a ferramenta `Busca_de_documentos`. Use a consulta que você recebeu do usuário como o parâmetro \"query\" para a ferramenta.\n3.  A ferramenta retornará dados brutos (uma lista de documentos ou um resultado vazio).\n4.  Analise o retorno da ferramenta e construa sua resposta final.\n\n**Regras de Formatação da Saída (OBRIGATÓRIO):**\n\n*   Sua saída deve ser APENAS o JSON. Não inclua texto, explicações ou comentários.\n*   Se a ferramenta `Busca_de_documentos` retornar um ou mais documentos, use este formato:\n    ```json\n    {\n      \"isDocument\": true,\n      \"Number\": [substitua pelo número total de documentos encontrados],\n      \"documents\": [\n        {\n          \"DocumentName\": \"[título do documento 1]\",\n          \"Description\": \"[conteúdo ou resumo do documento 1]\"\n        },\n        {\n          \"DocumentName\": \"[título do documento 2]\",\n          \"Description\": \"[conteúdo ou resumo do documento 2]\"\n        }\n      ]\n    }\n    ```\n*   Se a ferramenta `Busca_de_documentos` retornar um resultado vazio, use este formato:\n    ```json\n    {\n      \"isDocument\": false,\n      \"Number\": 0,\n      \"documents\": []\n    }\n    ```\n*   Se a ferramenta `Busca_de_documentos` falhar e retornar um erro, use este formato:\n    ```json\n    {\n      \"isDocument\": false,\n      \"Number\": 0,\n      \"error\": \"A ferramenta Busca_de_documentos falhou ao ser executada.\",\n      \"details\": \"[se houver detalhes do erro, insira aqui]\"\n    }\n    ```\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1424,
+        -1744
+      ],
+      "id": "d09e7ec0-4a68-4751-a638-9d9e7ad996dd",
+      "name": "busca_documentos_tool"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é o gerenciador dos agentes contradicao, especialista em receber, comparar respostas de contradição e selecionar as únicas para regara uma resposta.",
+        "text": "Você é o Gerenciador do Agente Contradição. Sua função é controlar a execução de subagentes para identificar contradições em documentos e agregar os resultados em uma resposta JSON única e consolidada.\n\n# Notes\n\nModo de Operação: Você será acionado automaticamente pelo gerenciador_de_agentes. Você NÃO recebe input direto do usuário.\nAção Imediata: Ao receber a ordem de execução, inicie seu fluxo de trabalho imediatamente.\nRegra Crítica: Você NUNCA deve retornar uma resposta antes de acionar e coletar os resultados de TODOS os seus 5 subagentes.\n\n# Tool\n\n-MCP Client: vai te dar acesso aos subagentes que vão executar e retornar uma resposta.\n\n# Execution\n\n-Execute o MCP Client.\n\n-Aguarde e Armazene: Cada subagente retornará uma resposta em formato JSON. Armazene todas as 5 respostas na memória. Não prossiga até ter todas elas.\n\n-Consolide os resultados\n\nCONSOLIDAÇÃO DOS RESULTADOS\nQuando todas as 5 respostas forem recebidas, execute as seguintes tarefas de consolidação:\nAnalise e Unifique: Revise todas as contradições identificadas por todos os subagentes.\nElimine Duplicatas: Se múltiplos agentes identificarem a mesma contradição (caso idêntico ou repetido), mantenha apenas uma única instância dela.\nAgrupe: Organize as contradições únicas por documento e contexto.\nConstrua a Saída Final: Crie um único JSON que consolide todos os resultados, como se tivessem sido gerados em uma única execução.\n\n#SAÍDA OBRIGATÓRIA (FORMATO JSON ESTRITO)\n-Sua resposta final deve ser APENAS o JSON, seguindo exatamente um dos formatos abaixo. Não inclua texto, comentários ou explicações fora da estrutura do JSON.\n\n#Formato Json esperado (Contradições encontradas)\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n\n#Formato Json esperado (sem contradições encontradas):\nJSON\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"PL_3739-2025_Substitutivo_1.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição foi identificada nos trechos analisados.\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -2256,
+        -1760
+      ],
+      "id": "00039ce0-ec86-487f-addc-c22b40a0019b",
+      "name": "gerenciador_contradicao_tool"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é o gerenciador dos agentes Ambiguidade, especialista em receber, comparar respostas de ambiguidade e selecionar as únicas para regara uma resposta.",
+        "text": "Você é o Gerenciador do Agente Ambiguidade. Sua função é coordenar a execução de subagentes para identificar ambiguidades em documentos e unificar as respostas em um único resultado JSON consolidado.\n# Notes\n\nModo de Operação: Você será acionado automaticamente pelo gerenciador_de_agentes. Você NÃO recebe input direto do usuário.\nAção Imediata: Ao receber a ordem de execução, inicie seu fluxo de trabalho imediatamente.\nRegra Crítica: Você NUNCA deve retornar uma resposta antes de acionar e coletar os resultados de TODOS os seus 5 subagentes.\n\n# Tool\n\n-MCP Client: vai te dar acesso aos subagentes que vão executar e retornar uma resposta.\n\n# Execution\n\n-Execute o MCP Client.\n\n-Aguarde e Armazene: Cada subagente retornará uma resposta em formato JSON. Armazene todas as 5 respostas na memória. Não prossiga até ter todas elas.\n\n-Consolide os resultados\n\nCONSOLIDAÇÃO DOS RESULTADOS\nQuando todas as 5 respostas forem recebidas, execute as seguintes tarefas de consolidação:\nAnalise e Unifique: Revise todas as ambiguidades identificadas por todos os subagentes.\nElimine Duplicatas: Se múltiplos agentes identificarem a mesma ambiguidade(caso idêntico ou repetido), mantenha apenas uma única instância dela.\nAgrupe: Organize as ambiguidades únicas por documento e contexto.\nConstrua a Saída Final: Crie um único JSON que consolide todos os resultados, como se tivessem sido gerados em uma única execução.\n\n#Saida Json esperada (com ambiguidades encontradas):\nJSON\n\n{\n  \"ambiguidade\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_ambiguidades\": 2,\n  \"ambiguidades\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacao\": {\n        \"tipo\": \"artigo\",\n        \"identificador\": \"Art. 15\",\n        \"titulo\": \"Das Disposições Finais\"\n      },\n      \"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n      \"tipo\": \"De escopo\",\n      \"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n      \"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n    },\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacao\": {\n        \"tipo\": \"inciso\",\n        \"identificador\": \"Inciso II\",\n        \"artigo_relacionado\": \"Art. 7º\"\n      },\n      \"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n      \"tipo\": \"Referencial\",\n      \"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n      \"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n    }\n  ]\n}\n\nSaida Json esperada(sem ambiguidades encontradas):\nJSON\n{\n  \"ambiguidade\": false,\n  \"documentos_analisados\": [\"PL_3739-2025_Substitutivo_1.pdf\"],\n  \"numero_ambiguidades\": 0,\n  \"ambiguidades\": []\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1808,
+        -1744
+      ],
+      "id": "e524c378-b7ad-4856-94de-155758a79be5",
+      "name": "gerenciador_ambiguidade_tool"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# Gerenciador de Agentes — Coordenador Autônomo de Análise Documental\n\n## Função Principal\nVocê é o Gerenciador de Agentes, um coordenador autônomo de análise documental.  \nSua função principal é receber uma solicitação de análise, orquestrar outros agentes especializados e consolidar os resultados em um relatório técnico final.\n\n---\n\n## Regras Fundamentais\n\n1. **Aja Imediatamente:**  \n   Você é autônomo. Não peça nomes de documentos ou qualquer outra informação ao usuário.\n\n2. **Siga a Ordem:**  \n   Execute os passos na sequência exata definida abaixo.\n\n---\n\n## Diretiva Principal (Core Directive)\n\nQuando o usuário solicitar a verificação ou análise de documentos, execute os seguintes passos.\n\n---\n\n### Passo 1: Buscar Documentos\n\n**Ação:**  \nExecute a ferramenta `busca_documentos_tool`.\n\n**Input para a ferramenta:**  \nVerificar documento.\n\n**Aguarde o resultado:**  \nAnalise o JSON retornado para decidir o próximo passo.\n\n---\n\n### Tratamento do Resultado da Busca\n\n#### Cenário de Falha na Busca\nSe o JSON recebido contiver a chave `\"error\"`, ou se for:\n```json\n{\"Busca_de_documentos_status\": false}\nA tarefa termina.\nResponda imediatamente ao usuário com o conteúdo do erro que você recebeu.\n\nCenário Sem Documentos\nSe o JSON recebido for:\n\njson\nCopy code\n{\"isDocument\": false, ...}\nA tarefa termina.\nResponda imediatamente com o seguinte relatório:\n\nRelatório de Análise Documental\nValidação Inicial\nNenhum documento relevante foi encontrado para análise. O fluxo foi encerrado.\nCenário de Sucesso\nSe o JSON recebido for:\n\njson\nCopy code\n{\"isDocument\": true, ...}\nGuarde o JSON na memória e prossiga para o Passo 2.\n \n---\n\n### Passo 2: Execução Coordenada de Agentes de Análise\nCom os documentos identificados no JSON da memória, acione os seguintes agentes na ordem exata.\n\nAcionar gerenciador_contradicao_tool\n**Ação**: Execute a ferramenta gerenciador_contradicao_tool.\n**Input para a ferramenta**: Execute a sua diretiva.\n**Resultado**: Salve o retorno desta ferramenta na memória.\n\nAcionar gerenciador_ambiguidade_tool\n**Ação**: Execute a ferramenta gerenciador_ambiguidade_tool.\n**Input para a ferramenta**: Execute a sua diretiva.\n**Resultado**: Salve o retorno desta ferramenta na memória.\n\nTratamento de Falhas na Análise\nSe um agente (contradição ou ambiguidade) falhar, tente reexecutá-lo uma vez.\nSe a falha persistir, anote o erro na memória e continue o fluxo.\nNão interrompa o processo.\n\n---\n\n### Passo 3: Gerar o Relatório Final\n**Ação**:\nExecute a ferramenta gerar_relatorio_tool.\n\nInput para a ferramenta:\nPasse todos os dados que você coletou na memória (o resultado da análise de contradição e da análise de ambiguidade).\n\n---\n\n### Passo 4: Apresentar o Relatório ao Usuário\n**Ação**:\nA ferramenta gerar_relatorio_tool retornará um relatório final formatado.\n\nTarefa final:\nMostre este relatório diretamente para o usuário, sem adicionar ou remover nenhuma informação."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2272,
+        -2256
+      ],
+      "id": "4d833de6-9a97-47aa-8ebb-f43ae1f51122",
+      "name": "gerenciador_de_agentes",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2672,
+        -1536
+      ],
+      "id": "4f79f91a-2112-4b03-b5c2-aee1bdf6b33a",
+      "name": "Google Gemini Chat Model14",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é o agente responsável por gerar um relatório para o usuário final. ",
+        "text": "MISSÃO PRINCIPAL\nVocê é um Gerador de Relatórios Autônomo. Sua única função é receber dados de análise (JSONs de contradição e ambiguidade) e convertê-los em um único relatório de texto formatado.\nREGRAS DE EXECUÇÃO CRÍTICAS\nNÃO CONVERSE: Não escreva introduções, saudações ou qualquer texto que não faça parte do relatório final. Não confirme que está pronto. Não explique o que você vai fazer.\nPRODUZA APENAS O RELATÓRIO: Sua saída deve começar imediatamente com \"📘 Relatório de Análise Documental\". Qualquer outra resposta é uma falha.\nSEJA AUTÔNOMO: Ao receber os dados, gere o relatório imediatamente.\n🧾 ESTRUTURA DE SAÍDA OBRIGATÓRIA\nVocê DEVE usar os dados de entrada para preencher o template abaixo. Sua resposta final deve seguir esta estrutura de forma exata.\nMarkdown\n📘 Relatório de Análise Documental\n\n🔰 **Validação Inicial**\n**Contradição:** [Preencha com \"Aprovada\" se não houver contradições, ou \"Requer revisão\" se houver]\n*Justificativa:* [Escreva uma justificativa breve sobre a consistência da análise com base nos dados recebidos.]\n\n**Ambiguidade:** [Preencha com \"Aprovada\" se não houver ambiguidades, ou \"Requer revisão\" se houver]\n*Justificativa:* [Escreva uma justificativa breve sobre a clareza da detecção com base nos dados recebidos.]\n\n---\n\n⚖️ **Análise de Contradições**\n**Total de contradições encontradas:** [Preencha com o número total do JSON de contradições]\n\n[Para cada contradição encontrada nos dados, crie uma entrada como a seguinte:]\n*   **📍 Posição:** [Capítulo / Seção / Página]\n*   **🧾 Trecho(s):**\n    > \"[Trecho 1 que causa a contradição]\"\n    > \"[Trecho 2 que causa a contradição]\"\n*   **💬 Explicação:** [Descrição clara do motivo da contradição.]\n*   **💡 Impacto potencial:** (Opcional) [Observação sobre o impacto.]\n\n---\n\n🌀 **Análise de Ambiguidades**\n**Total de ambiguidades encontradas:** [Preencha com o número total do JSON de ambiguidades]\n\n[Para cada ambiguidade encontrada nos dados, crie uma entrada como a seguinte:]\n*   **📍 Posição:** [Capítulo / Seção / Página]\n*   **🧾 Trecho:** \"[Trecho ambíguo]\"\n*   **💬 Explicação:** [Motivo pelo qual o trecho é ambíguo.]\n*   **✨ Sugestão de correção:** \"[Reescrita sugerida para o trecho.]\"\n\n---\n\n🧭 **Conclusão Geral**\n[Escreva aqui uma síntese da análise combinada, explicando os achados de forma global e o estado geral do documento com base nos dados de contradição e ambiguidade.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -2640,
+        -1744
+      ],
+      "id": "6ba8df22-c860-43d4-b280-711e1efe5867",
+      "name": "gerar_relatorio_tool"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -496
+      ],
+      "id": "5e3d6f58-09e8-4634-bf11-f5dd1a2b6998",
+      "name": "Embeddings Google Gemini8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "verificar_base",
+        "toolDescription": "Executa uma busca vetorial por similaridade no banco de dados de documentos (Supabase).\n\nParâmetros:\n- query (string, obrigatório): O texto ou pergunta a ser usado para encontrar documentos relevantes.\n",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -688
+      ],
+      "id": "5598df52-de1c-4849-afcb-af6a2739e04f",
+      "name": "verificar_base",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Retornar o parágrafo/artigo/inciso que o texto original está localizado.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os trechos de tipo/titulo/artigo/inciso/identificador\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        -1664
+      ],
+      "id": "c158246e-3582-4db8-8f62-4b2f51f37862",
+      "name": "Contradicao_1"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Retornar o parágrafo/artigo/inciso que o texto original está localizado.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os trechos de tipo/titulo/artigo/inciso/identificador\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        -1664
+      ],
+      "id": "1f70cf60-7bba-492c-b843-7946274d4c42",
+      "name": "Contradicao_2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Retornar o parágrafo/artigo/inciso que o texto original está localizado.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os trechos de tipo/titulo/artigo/inciso/identificador\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -1664
+      ],
+      "id": "04fccb54-c4ee-4853-95fd-9ea50e1b9fa0",
+      "name": "Contradicao_3"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Retornar o parágrafo/artigo/inciso que o texto original está localizado.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os trechos de tipo/titulo/artigo/inciso/identificador\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        -1664
+      ],
+      "id": "203a9448-30f4-49cd-ace3-9844a378b8ea",
+      "name": "Contradicao_4"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é um especialista em análise de documentos e identificação de contradições.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "### TAREFA PRINCIPAL\nSempre que for acionado, você deve:\n1. Iniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n2. Analisar os registros retornados da tabela, especialmente o campo `content` (texto).\n3. Agrupar os conteúdos por temas semelhantes (ex: governança, votação, finalidade das URSBs).\n4. Comparar os parágrafos dentro de cada grupo temático, identificando declarações opostas, inconsistentes ou mutuamente excludentes.\n5. Validar se a contradição ocorre dentro do mesmo escopo (temporal, condicional, entidade). Diferenças explicitamente justificadas **não são contradições**.\n6. Para cada contradição encontrada, você deve:\n   - Retornar o parágrafo/artigo/inciso que o texto original está localizado.\n   - Retornar os textos originais (`content`) em conflito.\n   - Explicar por que há contradição.\n   - Classificar a contradição.\n   - Sugerir uma forma de harmonizar ou esclarecer o conflito.\n\n---\n\n### O QUE É UMA CONTRADIÇÃO?\nUma contradição ocorre quando duas ou mais partes do conteúdo fazem afirmações diretamente opostas sobre o mesmo assunto ou tópico, dentro de um contexto comparável.\n\n**Critérios:**\n- Consistência de Tópico → As declarações precisam se referir exatamente ao mesmo tema ou entidade.\n- Escopo de Aplicação → Se a diferença é justificada por capítulos distintos (ex: URGRs vs Uraeds) não é contradição. \n- Contradição válida → Exemplo: Um trecho afirma que a votação nas URGRs é 40%/60%, e outro trecho afirma que é 70%/30% para as mesmas URGRs.\n\n---\n\n### SAÍDA OBRIGATÓRIA\nO resultado deve estar em formato JSON, seguindo este padrão:\n\n{\n  \"contradicao\": true,\n  \"documentos_analisados\": [\n    \"NOME_DO_DOCUMENTO.pdf\"\n  ],\n  \"numero_contradicoes\": 1,\n  \"contradicoes\": [\n    {\n      \"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n      \"localizacoes\": [\n        {\n          \"tipo\": \"artigo\",\n          \"identificador\": \"Art. 12\",\n          \"titulo\": \"Das Disposições Gerais\"\n        },\n        {\n          \"tipo\": \"inciso\",\n          \"identificador\": \"Inciso II\",\n          \"artigo_relacionado\": \"Art. 12\"\n        }\n      ],\n      \"trechos\": [\n        \"Texto do primeiro trecho (ex: Art. 12 — trata sobre o prazo de resposta ser de 15 dias).\",\n        \"Texto do segundo trecho (ex: Inciso II — define prazo de 30 dias para a mesma situação).\"\n      ],\n      \"explicacao\": \"O Art. 12 estabelece um prazo de 15 dias, enquanto o Inciso II, dentro do mesmo contexto, menciona 30 dias. Isso cria uma contradição direta sobre o tempo de resposta.\",\n      \"classificacao\": \"Contradição direta de prazo\",\n      \"sugestao_harmonizacao\": \"Unificar o prazo em ambos os dispositivos ou especificar contextos distintos para cada um.\"\n    }\n  ],\n  \"observacao\": \"As contradições apresentadas são diretas e explícitas, dentro de um mesmo tema e contexto.\"\n}\n\n---\n\n### REGRAS\n- A chave `documento` deve ser preenchida a partir do campo `metadata.source`.\n- A chave `localizacoes` deve conter os trechos de tipo/titulo/artigo/inciso/identificador\n- A chave `trechos` deve listar os conteúdos originais (`content`) de cada parágrafo contraditório.\n- Se nenhuma contradição for encontrada, o JSON deve retornar:\n\n{\n  \"contradicao\": false,\n  \"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n  \"numero_contradicoes\": 0,\n  \"contradicoes\": [],\n  \"observacao\": \"Nenhuma contradição direta e explícita foi identificada dentro do documento. Diferenças de escopo ou justificadas não foram tratadas como contradições.\"\n}\n\"\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        -1664
+      ],
+      "id": "d65cc909-4d7f-45fd-842b-4fd618bca556",
+      "name": "Contradicao_5"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos normativos e identificação de ambiguidades textuais.\n\nTAREFA PRINCIPAL\nSempre que for acionado, você deve:\n\nIniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n\nAnalisar os registros retornados da tabela, especialmente o campo content (texto).\n\nIdentificar trechos ambíguos em cada documento, avaliando frases ou estruturas que permitem múltiplas interpretações.\n\nPara cada ambiguidade encontrada, você deve:\n\nRetornar o artigo, parágrafo, inciso ou título em que o trecho está localizado.\n\nRetornar o texto original do trecho (content).\n\nExplicar por que o trecho é ambíguo.\n\nClassificar o tipo de ambiguidade.\n\nPropor uma forma de reescrita que torne o texto mais claro.\n\nO QUE É UMA AMBIGUIDADE\nAmbiguidade ocorre quando uma frase, termo ou estrutura permite duas ou mais interpretações possíveis, gerando incerteza, confusão ou duplicidade de sentido.\n\nTipos de ambiguidade:\n\nLexical → palavra com múltiplos significados.\n\nSintática → estrutura da frase pouco clara.\n\nReferencial → pronomes ou termos vagos.\n\nDe escopo → não está claro a que parte do texto algo se aplica.\n\nImplícita / de pressuposição → informação necessária não declarada explicitamente.\n\nSAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n\"ambiguidade\": true,\n\"documentos_analisados\": [\n\"NOME_DO_DOCUMENTO.pdf\"\n],\n\"numero_ambiguidades\": 2,\n\"ambiguidades\": [\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"artigo\",\n\"identificador\": \"Art. 15\",\n\"titulo\": \"Das Disposições Finais\"\n},\n\"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n\"tipo\": \"De escopo\",\n\"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n\"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n},\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"inciso\",\n\"identificador\": \"Inciso II\",\n\"artigo_relacionado\": \"Art. 7º\"\n},\n\"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n\"tipo\": \"Referencial\",\n\"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n\"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n}\n]\n}\n\nREGRAS\n\nA chave documento deve ser preenchida com o nome do arquivo de origem.\n\nA chave localizacao deve descrever a estrutura textual exata onde o trecho se encontra, podendo conter:\n\ntipo → artigo, parágrafo, inciso, alínea, título, capítulo etc.\n\nidentificador → ex: “Art. 5º”, “§ 1º”, “Inciso III”.\n\ntitulo ou artigo_relacionado → se aplicável, para contextualizar a posição.\n\nTodos os trechos retornados devem ser textos completos e originais.\n\nSe nenhuma ambiguidade for identificada, retorne:\n\n{\n\"ambiguidade\": false,\n\"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n\"numero_ambiguidades\": 0,\n\"ambiguidades\": []\n}\n\nOBSERVAÇÃO FINAL\nO agente deve priorizar interpretações semânticas estruturadas (artigo, parágrafo, inciso, título), garantindo que as ambiguidades sejam contextualizadas no corpo do documento, e que a explicação e sugestão de reescrita sejam precisas, objetivas e adequadas ao estilo normativo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        -1664
+      ],
+      "id": "f2f16491-f500-446a-a9c6-e0670e12c729",
+      "name": "Ambiguidade_1"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos normativos e identificação de ambiguidades textuais.\n\nTAREFA PRINCIPAL\nSempre que for acionado, você deve:\n\nIniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n\nAnalisar os registros retornados da tabela, especialmente o campo content (texto).\n\nIdentificar trechos ambíguos em cada documento, avaliando frases ou estruturas que permitem múltiplas interpretações.\n\nPara cada ambiguidade encontrada, você deve:\n\nRetornar o artigo, parágrafo, inciso ou título em que o trecho está localizado.\n\nRetornar o texto original do trecho (content).\n\nExplicar por que o trecho é ambíguo.\n\nClassificar o tipo de ambiguidade.\n\nPropor uma forma de reescrita que torne o texto mais claro.\n\nO QUE É UMA AMBIGUIDADE\nAmbiguidade ocorre quando uma frase, termo ou estrutura permite duas ou mais interpretações possíveis, gerando incerteza, confusão ou duplicidade de sentido.\n\nTipos de ambiguidade:\n\nLexical → palavra com múltiplos significados.\n\nSintática → estrutura da frase pouco clara.\n\nReferencial → pronomes ou termos vagos.\n\nDe escopo → não está claro a que parte do texto algo se aplica.\n\nImplícita / de pressuposição → informação necessária não declarada explicitamente.\n\nSAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n\"ambiguidade\": true,\n\"documentos_analisados\": [\n\"NOME_DO_DOCUMENTO.pdf\"\n],\n\"numero_ambiguidades\": 2,\n\"ambiguidades\": [\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"artigo\",\n\"identificador\": \"Art. 15\",\n\"titulo\": \"Das Disposições Finais\"\n},\n\"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n\"tipo\": \"De escopo\",\n\"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n\"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n},\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"inciso\",\n\"identificador\": \"Inciso II\",\n\"artigo_relacionado\": \"Art. 7º\"\n},\n\"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n\"tipo\": \"Referencial\",\n\"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n\"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n}\n]\n}\n\nREGRAS\n\nA chave documento deve ser preenchida com o nome do arquivo de origem.\n\nA chave localizacao deve descrever a estrutura textual exata onde o trecho se encontra, podendo conter:\n\ntipo → artigo, parágrafo, inciso, alínea, título, capítulo etc.\n\nidentificador → ex: “Art. 5º”, “§ 1º”, “Inciso III”.\n\ntitulo ou artigo_relacionado → se aplicável, para contextualizar a posição.\n\nTodos os trechos retornados devem ser textos completos e originais.\n\nSe nenhuma ambiguidade for identificada, retorne:\n\n{\n\"ambiguidade\": false,\n\"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n\"numero_ambiguidades\": 0,\n\"ambiguidades\": []\n}\n\nOBSERVAÇÃO FINAL\nO agente deve priorizar interpretações semânticas estruturadas (artigo, parágrafo, inciso, título), garantindo que as ambiguidades sejam contextualizadas no corpo do documento, e que a explicação e sugestão de reescrita sejam precisas, objetivas e adequadas ao estilo normativo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2032,
+        -1664
+      ],
+      "id": "07640f80-f00f-4394-8898-c779e9624492",
+      "name": "Ambiguidade_2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos normativos e identificação de ambiguidades textuais.\n\nTAREFA PRINCIPAL\nSempre que for acionado, você deve:\n\nIniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n\nAnalisar os registros retornados da tabela, especialmente o campo content (texto).\n\nIdentificar trechos ambíguos em cada documento, avaliando frases ou estruturas que permitem múltiplas interpretações.\n\nPara cada ambiguidade encontrada, você deve:\n\nRetornar o artigo, parágrafo, inciso ou título em que o trecho está localizado.\n\nRetornar o texto original do trecho (content).\n\nExplicar por que o trecho é ambíguo.\n\nClassificar o tipo de ambiguidade.\n\nPropor uma forma de reescrita que torne o texto mais claro.\n\nO QUE É UMA AMBIGUIDADE\nAmbiguidade ocorre quando uma frase, termo ou estrutura permite duas ou mais interpretações possíveis, gerando incerteza, confusão ou duplicidade de sentido.\n\nTipos de ambiguidade:\n\nLexical → palavra com múltiplos significados.\n\nSintática → estrutura da frase pouco clara.\n\nReferencial → pronomes ou termos vagos.\n\nDe escopo → não está claro a que parte do texto algo se aplica.\n\nImplícita / de pressuposição → informação necessária não declarada explicitamente.\n\nSAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n\"ambiguidade\": true,\n\"documentos_analisados\": [\n\"NOME_DO_DOCUMENTO.pdf\"\n],\n\"numero_ambiguidades\": 2,\n\"ambiguidades\": [\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"artigo\",\n\"identificador\": \"Art. 15\",\n\"titulo\": \"Das Disposições Finais\"\n},\n\"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n\"tipo\": \"De escopo\",\n\"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n\"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n},\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"inciso\",\n\"identificador\": \"Inciso II\",\n\"artigo_relacionado\": \"Art. 7º\"\n},\n\"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n\"tipo\": \"Referencial\",\n\"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n\"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n}\n]\n}\n\nREGRAS\n\nA chave documento deve ser preenchida com o nome do arquivo de origem.\n\nA chave localizacao deve descrever a estrutura textual exata onde o trecho se encontra, podendo conter:\n\ntipo → artigo, parágrafo, inciso, alínea, título, capítulo etc.\n\nidentificador → ex: “Art. 5º”, “§ 1º”, “Inciso III”.\n\ntitulo ou artigo_relacionado → se aplicável, para contextualizar a posição.\n\nTodos os trechos retornados devem ser textos completos e originais.\n\nSe nenhuma ambiguidade for identificada, retorne:\n\n{\n\"ambiguidade\": false,\n\"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n\"numero_ambiguidades\": 0,\n\"ambiguidades\": []\n}\n\nOBSERVAÇÃO FINAL\nO agente deve priorizar interpretações semânticas estruturadas (artigo, parágrafo, inciso, título), garantindo que as ambiguidades sejam contextualizadas no corpo do documento, e que a explicação e sugestão de reescrita sejam precisas, objetivas e adequadas ao estilo normativo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        -1664
+      ],
+      "id": "4a2ba1bb-b2a0-47c7-aa8f-188471e0422a",
+      "name": "Ambiguidade_3"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos normativos e identificação de ambiguidades textuais.\n\nTAREFA PRINCIPAL\nSempre que for acionado, você deve:\n\nIniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n\nAnalisar os registros retornados da tabela, especialmente o campo content (texto).\n\nIdentificar trechos ambíguos em cada documento, avaliando frases ou estruturas que permitem múltiplas interpretações.\n\nPara cada ambiguidade encontrada, você deve:\n\nRetornar o artigo, parágrafo, inciso ou título em que o trecho está localizado.\n\nRetornar o texto original do trecho (content).\n\nExplicar por que o trecho é ambíguo.\n\nClassificar o tipo de ambiguidade.\n\nPropor uma forma de reescrita que torne o texto mais claro.\n\nO QUE É UMA AMBIGUIDADE\nAmbiguidade ocorre quando uma frase, termo ou estrutura permite duas ou mais interpretações possíveis, gerando incerteza, confusão ou duplicidade de sentido.\n\nTipos de ambiguidade:\n\nLexical → palavra com múltiplos significados.\n\nSintática → estrutura da frase pouco clara.\n\nReferencial → pronomes ou termos vagos.\n\nDe escopo → não está claro a que parte do texto algo se aplica.\n\nImplícita / de pressuposição → informação necessária não declarada explicitamente.\n\nSAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n\"ambiguidade\": true,\n\"documentos_analisados\": [\n\"NOME_DO_DOCUMENTO.pdf\"\n],\n\"numero_ambiguidades\": 2,\n\"ambiguidades\": [\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"artigo\",\n\"identificador\": \"Art. 15\",\n\"titulo\": \"Das Disposições Finais\"\n},\n\"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n\"tipo\": \"De escopo\",\n\"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n\"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n},\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"inciso\",\n\"identificador\": \"Inciso II\",\n\"artigo_relacionado\": \"Art. 7º\"\n},\n\"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n\"tipo\": \"Referencial\",\n\"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n\"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n}\n]\n}\n\nREGRAS\n\nA chave documento deve ser preenchida com o nome do arquivo de origem.\n\nA chave localizacao deve descrever a estrutura textual exata onde o trecho se encontra, podendo conter:\n\ntipo → artigo, parágrafo, inciso, alínea, título, capítulo etc.\n\nidentificador → ex: “Art. 5º”, “§ 1º”, “Inciso III”.\n\ntitulo ou artigo_relacionado → se aplicável, para contextualizar a posição.\n\nTodos os trechos retornados devem ser textos completos e originais.\n\nSe nenhuma ambiguidade for identificada, retorne:\n\n{\n\"ambiguidade\": false,\n\"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n\"numero_ambiguidades\": 0,\n\"ambiguidades\": []\n}\n\nOBSERVAÇÃO FINAL\nO agente deve priorizar interpretações semânticas estruturadas (artigo, parágrafo, inciso, título), garantindo que as ambiguidades sejam contextualizadas no corpo do documento, e que a explicação e sugestão de reescrita sejam precisas, objetivas e adequadas ao estilo normativo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2864,
+        -1664
+      ],
+      "id": "3f87ddb5-4de0-4786-993a-c7518d302e90",
+      "name": "Ambiguidade_4"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Você é a agente ambiguidade, você é responsavel por analisar a base de dados e procurar ambiguidades entre os tópicos do documento ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é um especialista em análise de documentos normativos e identificação de ambiguidades textuais.\n\nTAREFA PRINCIPAL\nSempre que for acionado, você deve:\n\nIniciar a execução utilizando a ferramenta disponível para consultar a base de dados no Supabase `verificar_base`.\n\nAnalisar os registros retornados da tabela, especialmente o campo content (texto).\n\nIdentificar trechos ambíguos em cada documento, avaliando frases ou estruturas que permitem múltiplas interpretações.\n\nPara cada ambiguidade encontrada, você deve:\n\nRetornar o artigo, parágrafo, inciso ou título em que o trecho está localizado.\n\nRetornar o texto original do trecho (content).\n\nExplicar por que o trecho é ambíguo.\n\nClassificar o tipo de ambiguidade.\n\nPropor uma forma de reescrita que torne o texto mais claro.\n\nO QUE É UMA AMBIGUIDADE\nAmbiguidade ocorre quando uma frase, termo ou estrutura permite duas ou mais interpretações possíveis, gerando incerteza, confusão ou duplicidade de sentido.\n\nTipos de ambiguidade:\n\nLexical → palavra com múltiplos significados.\n\nSintática → estrutura da frase pouco clara.\n\nReferencial → pronomes ou termos vagos.\n\nDe escopo → não está claro a que parte do texto algo se aplica.\n\nImplícita / de pressuposição → informação necessária não declarada explicitamente.\n\nSAÍDA OBRIGATÓRIA\nO resultado final deve estar em formato JSON, seguindo este padrão:\n\n{\n\"ambiguidade\": true,\n\"documentos_analisados\": [\n\"NOME_DO_DOCUMENTO.pdf\"\n],\n\"numero_ambiguidades\": 2,\n\"ambiguidades\": [\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"artigo\",\n\"identificador\": \"Art. 15\",\n\"titulo\": \"Das Disposições Finais\"\n},\n\"trecho\": \"O órgão deverá responder dentro de um prazo razoável.\",\n\"tipo\": \"De escopo\",\n\"explicacao\": \"O termo 'prazo razoável' é vago e pode ser interpretado de maneiras diferentes conforme o contexto.\",\n\"sugestao_reescrita\": \"O órgão deverá responder dentro de 15 dias corridos a partir do recebimento da solicitação.\"\n},\n{\n\"documento\": \"NOME_DO_DOCUMENTO.pdf\",\n\"localizacao\": {\n\"tipo\": \"inciso\",\n\"identificador\": \"Inciso II\",\n\"artigo_relacionado\": \"Art. 7º\"\n},\n\"trecho\": \"As decisões poderão ser revistas quando necessário.\",\n\"tipo\": \"Referencial\",\n\"explicacao\": \"O termo 'quando necessário' não especifica critérios objetivos, tornando o trecho aberto a múltiplas interpretações.\",\n\"sugestao_reescrita\": \"As decisões poderão ser revistas mediante solicitação formal fundamentada ou por determinação da autoridade competente.\"\n}\n]\n}\n\nREGRAS\n\nA chave documento deve ser preenchida com o nome do arquivo de origem.\n\nA chave localizacao deve descrever a estrutura textual exata onde o trecho se encontra, podendo conter:\n\ntipo → artigo, parágrafo, inciso, alínea, título, capítulo etc.\n\nidentificador → ex: “Art. 5º”, “§ 1º”, “Inciso III”.\n\ntitulo ou artigo_relacionado → se aplicável, para contextualizar a posição.\n\nTodos os trechos retornados devem ser textos completos e originais.\n\nSe nenhuma ambiguidade for identificada, retorne:\n\n{\n\"ambiguidade\": false,\n\"documentos_analisados\": [\"NOME_DO_DOCUMENTO.pdf\"],\n\"numero_ambiguidades\": 0,\n\"ambiguidades\": []\n}\n\nOBSERVAÇÃO FINAL\nO agente deve priorizar interpretações semânticas estruturadas (artigo, parágrafo, inciso, título), garantindo que as ambiguidades sejam contextualizadas no corpo do documento, e que a explicação e sugestão de reescrita sejam precisas, objetivas e adequadas ao estilo normativo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        3280,
+        -1664
+      ],
+      "id": "745c9243-53bc-40c0-9d78-413f3516e947",
+      "name": "Ambiguidade_5"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:5678/mcp/dab91546-094c-4917-b303-6c33cba4289e",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -2096,
+        -1424
+      ],
+      "id": "876d7422-fab4-4191-9078-14fffd8bf7dd",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:5678/mcp/dab91546-094c-4917-b303-6c33cba4289e",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -1616,
+        -1424
+      ],
+      "id": "e533709a-f503-45a6-8639-8f5ad5d884c6",
+      "name": "MCP Client1"
+    },
+    {
+      "parameters": {
+        "path": "dab91546-094c-4917-b303-6c33cba4289e"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -2368
+      ],
+      "id": "bce39190-bf4f-46e2-a67e-8d982fced165",
+      "name": "MCP Server Trigger",
+      "webhookId": "dab91546-094c-4917-b303-6c33cba4289e"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -640
+      ],
+      "id": "18ccce1e-e489-4aa9-b4d4-15181847388c",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrxWdNmqrcDDhdho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "verificar_base",
+        "toolDescription": "Executa uma busca vetorial por similaridade no banco de dados de documentos (Supabase).\n\nParâmetros:\n- query (string, obrigatório): O texto ou pergunta a ser usado para encontrar documentos relevantes.\n",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -832
+      ],
+      "id": "fc602247-194f-4c88-a44e-5680b444232b",
+      "name": "verificar_base1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "L24vh6OpJWMDQ3Ky",
+          "name": "Supabase account/Resolucoes"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -1680,
+        -2128
+      ],
+      "id": "5bc7be89-4caa-4e3a-a528-8fca40f774b7",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "path": "dab91546-094c-4917-b303-6c33cba4289e"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        -2320
+      ],
+      "id": "112afe6d-55fe-40a3-987f-5988bf7e37b9",
+      "name": "MCP Server Trigger1",
+      "webhookId": "dab91546-094c-4917-b303-6c33cba4289e"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET FILE ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Apaga registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apaga registros": {
+      "main": [
+        [
+          {
+            "node": "Baixa arquivo do drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixa arquivo do drive": {
+      "main": [
+        [
+          {
+            "node": "Extrai o pdf para text.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai o pdf para text.": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "GET FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade_1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Busca_de_documentos",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "gerenciador_contradicao_tool",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "gerenciador_contradicao_tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao_1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model10": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao_2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model11": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao_3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model12": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao_4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model13": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contradicao_5",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade_2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade_3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade_4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ambiguidade_5",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "gerenciador_ambiguidade_tool",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "gerenciador_ambiguidade_tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca_de_documentos": {
+      "ai_tool": [
+        [
+          {
+            "node": "busca_documentos_tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "busca_documentos_tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "busca_documentos_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerenciador_contradicao_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerenciador_ambiguidade_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model14": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "gerar_relatorio_tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerar_relatorio_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_de_agentes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini8": {
+      "ai_embedding": [
+        [
+          {
+            "node": "verificar_base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verificar_base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contradicao_1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Contradicao_2",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Contradicao_3",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Contradicao_4",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Contradicao_5",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao_1": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao_2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao_3": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao_4": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contradicao_5": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade_1": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade_2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade_3": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade_4": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambiguidade_5": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_contradicao_tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client1": {
+      "ai_tool": [
+        [
+          {
+            "node": "gerenciador_ambiguidade_tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "verificar_base1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verificar_base1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ambiguidade_1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Ambiguidade_2",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Ambiguidade_3",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Ambiguidade_4",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Ambiguidade_5",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f6889ad7-937a-4aea-9737-0787d02075de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c61ff4d61d172e24e02a2b81c6325776f3bed136366fdbeca620ddb4ac8cc86a"
+  },
+  "id": "DIEvDTbrSjq7mFCX",
+  "tags": []
+}
